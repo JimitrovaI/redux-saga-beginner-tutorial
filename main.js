@@ -1,25 +1,38 @@
-import "@babel/polyfill"
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { createStore, combineReducers, applyMiddleware } from "redux";
+import createSagaMiddleware from "redux-saga";
+import "regenerator-runtime/runtime";
 
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { createStore, applyMiddleware } from 'redux'
+import formFields from "./src/Components/Form/Duck/Form-Reducer";
+import formSaga from "./src/Components/Form/Duck/Form-Operation";
+import Form from "./src/Components/Form/Form";
+// import "./styles.css";
 
-import Counter from './Counter'
-import reducer from './reducers'
+const allReducers = {
+  formFields: formFields
+};
 
-const store = createStore(reducer)
+const rootReducer = combineReducers(allReducers);
 
-const action = type => store.dispatch({type})
+const sagaMiddleWare = createSagaMiddleware();
 
-function render() {
-  ReactDOM.render(
-    <Counter
-      value={store.getState()}
-      onIncrement={() => action('INCREMENT')}
-      onDecrement={() => action('DECREMENT')} />,
-    document.getElementById('root')
-  )
+const store = createStore(rootReducer, applyMiddleware(sagaMiddleWare));
+
+sagaMiddleWare.run(formSaga);
+
+window.store = store;
+
+class App extends React.Component {
+  render() {
+    return [
+      <Provider store={store}>
+        <Form />
+      </Provider>
+    ];
+  }
 }
 
-render()
-store.subscribe(render)
+const rootElement = document.getElementById("root");
+ReactDOM.render(<App />, rootElement);
